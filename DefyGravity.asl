@@ -1,7 +1,7 @@
 state("DefyGravity")
 {
 	float levelTimer : "CSERHelper.dll", 0x0001D654, 0x430, 0x718, 0x66c, 0x1f4;
-	int levelIndex : "CSERHelper.dll", 0x0001D654, 0x430, 0x718, 0x66c, 0x1f0;
+	int levelIndex : "CSERHelper.dll", 0x0001D654, 0x430, 0x718, 0x66c, 0x21c;
 }
 
 startup
@@ -45,6 +45,4 @@ update {
 	{
 		vars.timerModel.Reset();
 	}
-	
-	print("Level: " + current.levelIndex.ToString() + " | Level Time: " + current.levelTimer.ToString("F1"));
 }
