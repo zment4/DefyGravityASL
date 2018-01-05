@@ -53,7 +53,7 @@ update {
 		vars.timerModel.Reset();
 	}
 
-	print("Loaded level: " + vars.levelIndex.Current.ToString() + " | Level timer: " + vars.levelTimer.Current.ToString("F1"));
+//	print("Loaded level: " + vars.levelIndex.Current.ToString() + " | Level timer: " + vars.levelTimer.Current.ToString("F1"));
 	
 	var currentLevelTimer = TimeSpan.FromSeconds(vars.levelTimer.Current);
 	vars.highestSplitTime = vars.highestSplitTime < currentLevelTimer ? currentLevelTimer : vars.highestSplitTime;
