@@ -4,7 +4,7 @@ state("DefyGravity")
 
 startup
 {
-	vars.gameScanTarget = new SigScanTarget(0, "10 3F ?? 08 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 96");
+	vars.gameScanTarget = new SigScanTarget(0, "10 3F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 96 ?? ?? ?? 96 ?? ?? ?? 96");
 
 	System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
 
@@ -15,35 +15,40 @@ startup
 }
 
 init {
-	var ptr = IntPtr.Zero;
-	
-	foreach (var page in game.MemoryPages(true)) {
-		var scanner = new SignatureScanner(game, page.BaseAddress, (int) page.RegionSize);
+	vars.scannerTask = System.Threading.Tasks.Task.Run(() => {
+		var ptr = IntPtr.Zero;
 		
-		if (ptr == IntPtr.Zero) {
-			ptr = scanner.Scan(vars.gameScanTarget);
-		} else {
-			break;
+		while (ptr == IntPtr.Zero) {
+			foreach (var page in game.MemoryPages(true)) {
+				var scanner = new SignatureScanner(game, page.BaseAddress, (int) page.RegionSize);
+				
+				if (ptr == IntPtr.Zero) {
+					ptr = scanner.Scan(vars.gameScanTarget);
+				} else {
+					break;
+				}
+			}
+			
+			if (ptr != IntPtr.Zero) {
+				vars.levelTimer = new MemoryWatcher<float>(ptr + 0x1f4);
+				vars.levelIndex = new MemoryWatcher<int>(ptr + 0x21c);
+				
+				vars.watchers = new MemoryWatcherList() {
+					vars.levelTimer,
+					vars.levelIndex
+				};
+			}
+			
+			System.Threading.Tasks.Task.Delay(100);
 		}
-	}
-	
-	if (ptr == IntPtr.Zero) {
-		Thread.Sleep(1000);
-		throw new Exception();
-	}
-	
-	vars.levelTimer = new MemoryWatcher<float>(ptr + 0x1f4);
-	vars.levelIndex = new MemoryWatcher<int>(ptr + 0x21c);
-	
-	vars.watchers = new MemoryWatcherList() {
-		vars.levelTimer,
-		vars.levelIndex
-	};
+	});
 	
 	vars.highestSplitTime = new TimeSpan();
 }
 
 update {
+	if (!vars.scannerTask.IsCompleted) return;
+	
 	vars.watchers.UpdateAll(game);
 	
 	if (vars.levelIndex.Current == -1)
@@ -58,6 +63,8 @@ update {
 }
 
 start {
+	if (!vars.scannerTask.IsCompleted) return;
+	
 	var willStart = vars.levelIndex.Old == 0 && vars.levelIndex.Current == 1;
 	
 	if (willStart)
@@ -70,6 +77,8 @@ start {
 }
 
 split {
+	if (!vars.scannerTask.IsCompleted) return;
+
 	var willSplit = vars.levelIndex.Old != vars.levelIndex.Current && vars.levelIndex.Current != -1;
 	
 	if (willSplit)
@@ -82,9 +91,13 @@ split {
 }
 
 gameTime {
+	if (!vars.scannerTask.IsCompleted) return;
+
 	return vars.BaseTime + vars.highestSplitTime;
 }
 
 isLoading {
+	if (!vars.scannerTask.IsCompleted) return;
+	
 	return vars.levelTimer.Old == vars.levelTimer.Current;
 } 
