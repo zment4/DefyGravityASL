@@ -140,7 +140,7 @@ split {
 gameTime {
 	if (!vars.scannerTask.IsCompleted) return;
 
-	return vars.BaseTime + TimeSpan.FromSeconds(vars.levelTimer.Old);
+	return vars.BaseTime + TimeSpan.FromSeconds(vars.lastLevelTime);
 }
 
 isLoading {
