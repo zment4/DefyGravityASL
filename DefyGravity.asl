@@ -5,10 +5,10 @@ state("DefyGravity")
 startup
 {
 	settings.Add("createui", false, "Create UI if needed");
+//	settings.Add("disableonpractice", true, "Disable Autosplitter when in Practice Mode");
+	settings.Add("forceigt", false, "Force current timing method to GameTime");
 	
 	System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
-
-	timer.CurrentTimingMethod = TimingMethod.GameTime;
 	
 	vars.timerModel = new TimerModel { CurrentState = timer };
 	vars.BaseTime = new TimeSpan();
@@ -68,12 +68,14 @@ init {
 				await System.Threading.Tasks.Task.Delay(100);
 		}
 	});
-	
+		
 	vars.playerDeathCount = 0;
-	
-	vars.highestSplitTime = new TimeSpan();
+	vars.lastLevelTime = 0f;
 	
 	vars.SetTextComponent("Death Count", vars.playerDeathCount.ToString(), settings["createui"]);
+	vars.SetTextComponent("Last Level IGT", vars.lastLevelTime.ToString("F2"), settings["createui"]);
+	
+	vars.oldLastLevelTime = 0f;
 }
 
 update {
@@ -81,32 +83,39 @@ update {
 	
 	vars.watchers.UpdateAll(game);
 	
-	if (settings.ResetEnabled && vars.levelIndex.Current == -1)
+	if (vars.levelIndex.Current == -1)
 	{
 		vars.playerDeathCount = 0;
-		vars.timerModel.Reset();
+		if (settings.ResetEnabled) 
+			vars.timerModel.Reset();
 	}
 
 //	print("Loaded level: " + vars.levelIndex.Current.ToString() + " | Level timer: " + vars.levelTimer.Current.ToString("F1"));
 	
-	var currentLevelTimer = TimeSpan.FromSeconds(vars.levelTimer.Current);
-	vars.highestSplitTime = vars.highestSplitTime < currentLevelTimer ? currentLevelTimer : vars.highestSplitTime;
-	
 	if (vars.playerIsAlive.Old == true && vars.playerIsAlive.Current == false)
 		vars.playerDeathCount++;
 		
-	vars.SetTextComponent("Death Count", vars.playerDeathCount.ToString(), settings["createui"]);		
+	vars.SetTextComponent("Death Count", vars.playerDeathCount.ToString(), settings["createui"]);
+	
+	if (vars.levelTimer.Old > vars.levelTimer.Current && vars.levelIndex.Current == vars.levelIndex.Old)
+		vars.lastLevelTime = vars.levelTimer.Old;
+		
+	if (vars.oldLastLevelTime != vars.lastLevelTime)
+	{
+		vars.SetTextComponent("Last Level IGT", vars.lastLevelTime.ToString("F2"), settings["createui"]);
+	}
 }
 
 start {
 	if (!vars.scannerTask.IsCompleted) return;
 	
+	if (settings["forceigt"]) timer.CurrentTimingMethod = TimingMethod.GameTime;
+
 	var willStart = vars.levelIndex.Old == 0 && vars.levelIndex.Current == 1;
 	
 	if (willStart)
 	{
 		vars.BaseTime = new TimeSpan();
-		vars.highestSplitTime = new TimeSpan();
 		vars.playerDeathCount = 0;
 	}
 		
@@ -120,8 +129,7 @@ split {
 	
 	if (willSplit)
 	{
-		vars.BaseTime += vars.highestSplitTime;
-		vars.highestSplitTime = new TimeSpan();
+		vars.BaseTime += TimeSpan.FromSeconds(vars.levelTimer.Old);
 	}
 	
 	return willSplit;
@@ -130,7 +138,7 @@ split {
 gameTime {
 	if (!vars.scannerTask.IsCompleted) return;
 
-	return vars.BaseTime + vars.highestSplitTime;
+	return vars.BaseTime + TimeSpan.FromSeconds(vars.levelTimer.Old);
 }
 
 isLoading {
@@ -141,4 +149,8 @@ isLoading {
 
 reset {
 	return false;
+}
+
+exit {
+	vars.timerModel.Reset();
 }
