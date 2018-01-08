@@ -98,8 +98,8 @@ update {
 
 //	print("Loaded level: " + vars.levelIndex.Current.ToString() + " | Level timer: " + vars.levelTimer.Current.ToString("F1"));
 	
-	if (vars.highestSplitTime < vars.levelTime.Current)
-		vars.highestSplitTime = vars.levelTime.Current;
+	if (vars.highestSplitTime < vars.levelTimer.Current)
+		vars.highestSplitTime = vars.levelTimer.Current;
 		
 	if (vars.playerIsAlive.Old == true && vars.playerIsAlive.Current == false)
 		vars.playerDeathCount++;
