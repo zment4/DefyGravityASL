@@ -90,6 +90,7 @@ update {
 		vars.playerDeathCount = 0;
 		vars.lastLevelTime = 0f;
 		vars.oldLastLevelTime = 0f;
+		vars.highestSplitTime = 0f;
 		
 		if (settings.ResetEnabled) 
 			vars.timerModel.Reset();
@@ -97,6 +98,9 @@ update {
 
 //	print("Loaded level: " + vars.levelIndex.Current.ToString() + " | Level timer: " + vars.levelTimer.Current.ToString("F1"));
 	
+	if (vars.highestSplitTime < vars.levelTime.Current)
+		vars.highestSplitTime = vars.levelTime.Current;
+		
 	if (vars.playerIsAlive.Old == true && vars.playerIsAlive.Current == false)
 		vars.playerDeathCount++;
 		
@@ -124,6 +128,7 @@ start {
 		vars.playerDeathCount = 0;
 		vars.lastLevelTime = 0f;
 		vars.oldLastLevelTime = 0f;
+		vars.highestSplitTime = 0f;
 	}
 		
 	return willStart;
@@ -136,7 +141,8 @@ split {
 	
 	if (willSplit)
 	{
-		vars.BaseTime += TimeSpan.FromSeconds(vars.lastLevelTime);
+		vars.BaseTime += TimeSpan.FromSeconds(vars.highestSplitTime);
+		vars.highestSplitTime = 0f;
 	}
 	
 	return willSplit;
@@ -145,7 +151,7 @@ split {
 gameTime {
 	if (!vars.scannerTask.IsCompleted) return;
 
-	return vars.BaseTime + TimeSpan.FromSeconds(vars.lastLevelTime);
+	return vars.BaseTime + TimeSpan.FromSeconds(vars.highestSplitTime);
 }
 
 isLoading {
