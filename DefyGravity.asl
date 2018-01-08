@@ -88,6 +88,9 @@ update {
 	if (vars.levelIndex.Current == -1)
 	{
 		vars.playerDeathCount = 0;
+		vars.lastLevelTime = 0f;
+		vars.oldLastLevelTime = 0f;
+		
 		if (settings.ResetEnabled) 
 			vars.timerModel.Reset();
 	}
@@ -119,6 +122,8 @@ start {
 	{
 		vars.BaseTime = new TimeSpan();
 		vars.playerDeathCount = 0;
+		vars.lastLevelTime = 0f;
+		vars.oldLastLevelTime = 0f;
 	}
 		
 	return willStart;
