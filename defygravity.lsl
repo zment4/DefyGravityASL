@@ -194,17 +194,17 @@
           </Settings>
           <Settings>
             <Version>1.5</Version>
-            <Name>GT</Name>
-            <Type>SplitTime</Type>
-            <Comparison>Current Comparison</Comparison>
-            <TimingMethod>Game Time</TimingMethod>
-          </Settings>
-          <Settings>
-            <Version>1.5</Version>
             <Name>RT</Name>
             <Type>SplitTime</Type>
             <Comparison>Current Comparison</Comparison>
             <TimingMethod>Real Time</TimingMethod>
+          </Settings>
+          <Settings>
+            <Version>1.5</Version>
+            <Name>GT</Name>
+            <Type>SplitTime</Type>
+            <Comparison>Current Comparison</Comparison>
+            <TimingMethod>Game Time</TimingMethod>
           </Settings>
         </Columns>
       </Settings>
