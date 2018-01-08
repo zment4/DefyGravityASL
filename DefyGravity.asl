@@ -7,6 +7,7 @@ startup
 	settings.Add("createui", false, "Create UI if needed");
 //	settings.Add("disableonpractice", true, "Disable Autosplitter when in Practice Mode");
 	settings.Add("forceigt", false, "Force current timing method to GameTime");
+//	settings.Add("twl", false, "GameTime is loadless instead of IGT");
 	
 	System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
 	
@@ -76,6 +77,7 @@ init {
 	vars.SetTextComponent("Last Level IGT", vars.lastLevelTime.ToString("F2"), settings["createui"]);
 	
 	vars.oldLastLevelTime = 0f;
+	vars.highestSplitTime = 0f;
 }
 
 update {
@@ -97,7 +99,7 @@ update {
 		
 	vars.SetTextComponent("Death Count", vars.playerDeathCount.ToString(), settings["createui"]);
 	
-	if (vars.levelTimer.Old > vars.levelTimer.Current && vars.levelIndex.Current == vars.levelIndex.Old)
+	if (vars.levelTimer.Old > vars.levelTimer.Current)
 		vars.lastLevelTime = vars.levelTimer.Old;
 		
 	if (vars.oldLastLevelTime != vars.lastLevelTime)
@@ -129,7 +131,7 @@ split {
 	
 	if (willSplit)
 	{
-		vars.BaseTime += TimeSpan.FromSeconds(vars.levelTimer.Old);
+		vars.BaseTime += TimeSpan.FromSeconds(vars.lastLevelTime);
 	}
 	
 	return willSplit;
