@@ -10,6 +10,7 @@ startup
 	settings.Add("createui", false, "Create UI if needed");
 	settings.Add("disableonpractice", true, "Disable Autosplitter when in Practice Mode");
 	settings.Add("forceigt", false, "Force current timing method to GameTime");
+	settings.Add("debug", false, "Debug output");
 //	settings.Add("twl", false, "GameTime is loadless instead of IGT");
 	
 	System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
@@ -38,7 +39,8 @@ startup
 init {
 	var assemblyName = AssemblyName.GetAssemblyName(modules.First().FileName).Name;
 	
-	print(modules.First().ModuleMemorySize.ToString("X8"));
+	print("[DGASL] Assembly Name: " + assemblyName);
+	print("[DGASL] Memory module size: " + modules.First().ModuleMemorySize.ToString("X8"));
 	vars.exeVersion = "vanilla";
 	if (modules.First().ModuleMemorySize == 0x58000)
 		vars.exeVersion = "practiceMod1";
@@ -53,9 +55,11 @@ init {
 	vars.initialized = false;
 	vars.cancelRequested = false;
 	
+	vars.heapAddress = (IntPtr) 0;
 	vars.scannerTask = System.Threading.Tasks.Task.Run(() => {
 		var ptr = IntPtr.Zero;
-
+		System.Threading.Tasks.Task.Delay(2000).Wait();
+		
 		while (ptr == IntPtr.Zero) {
 			foreach (var page in game.MemoryPages(true)) {
 				var scanner = new SignatureScanner(game, page.BaseAddress, (int) page.RegionSize);
@@ -66,14 +70,15 @@ init {
 			
 			if (ptr != IntPtr.Zero) {
 				// Sometimes the last three bytes are wrong (ie. they get moved right after scanning), but the correct address is consistent to calculate
-				ptr = (IntPtr) ptr - ((int) ptr & 0xfff) + 0x18;
-				print(ptr.ToString("X8"));
+//				ptr = (IntPtr) ptr - ((int) ptr & 0xfff) + 0x18;
+				vars.heapAddress = ptr;
+				print("[DGASL] Heap address: " + ptr.ToString("X8"));
 				
-				vars.levelIndex = new MemoryWatcher<int>(ptr + 0x21c + add_offset);
-				vars.levelTimer = new MemoryWatcher<float>(ptr + 0x1f4 + add_offset);
+				vars.levelIndex = new MemoryWatcher<int>(ptr + 0x21c + add_offset) { Name = "Level Index" };
+				vars.levelTimer = new MemoryWatcher<float>(ptr + 0x1f4 + add_offset) { Name = "Level Timer" };
 				var playerPtr = (ptr + 0x1d0 - modules.First().BaseAddress.ToInt32()).ToInt32();
-				vars.playerDirection = new MemoryWatcher<int>(new DeepPointer(playerPtr, 0x10, 0x118));
-				vars.playerIsAlive = new MemoryWatcher<bool>(new DeepPointer(playerPtr, 0x10, 0x15b));
+				vars.playerDirection = new MemoryWatcher<int>(new DeepPointer(playerPtr, 0x10, 0x118)) { Name = "Player Direction" } ;
+				vars.playerIsAlive = new MemoryWatcher<bool>(new DeepPointer(playerPtr, 0x10, 0x15b)) { Name = "Player Is Alive" } ;
 						 
 				vars.watchers = new MemoryWatcherList() {
 					vars.levelTimer,
@@ -87,7 +92,7 @@ init {
 					add_offset = vars.exeVersion.Contains("2") ? 8 : 0;
 					
 					var practicePtr = (ptr + 0x1e8 - modules.First().BaseAddress.ToInt32()).ToInt32();
-					vars.practiceModeActive = new MemoryWatcher<int>(new DeepPointer(practicePtr, 0x0c + add_offset));
+					vars.practiceModeActive = new MemoryWatcher<int>(new DeepPointer(practicePtr, 0x0c + add_offset)) { Name = "Practice Mode Type" };
 					
 					vars.watchers.Add(vars.practiceModeActive);
 				}
@@ -131,13 +136,13 @@ update {
 		
 		if (settings.ResetEnabled)
 		{
-			print("Will Reset");
+			print("[DGASL] Resetting due to entering main menu");
 			vars.timerModel.Reset();
 		}
 	}
 
-	if (vars.highestSplitTime < vars.levelTimer.Current)
-		vars.highestSplitTime = vars.levelTimer.Current;
+	if (timer.CurrentPhase == TimerPhase.Running && vars.highestSplitTime < vars.levelTimer.Old)
+		vars.highestSplitTime = vars.levelTimer.Old;
 		
 	if (vars.playerIsAlive.Old == true && vars.playerIsAlive.Current == false)
 		vars.playerDeathCount++;
@@ -157,9 +162,20 @@ update {
 		print("Practice mode detected, disabling");
 		vars.timerModel.Reset();
 		return false;
-	}	
+	}
 	
-	print (vars.levelIndex.Old.ToString() + " -> " + vars.levelIndex.Current.ToString());
+	if (settings["debug"])
+	{
+		var str = "";
+		foreach (var w in vars.watchers)
+		{
+			str += "[DGASL] " + w.Name + ": " + w.Current.ToString() + "\n";
+		}
+		
+		str += "[DGASL] Heap Address: " + vars.heapAddress.ToString("X8");
+		
+		print(str);
+	}
 }
 
 start { 
@@ -176,9 +192,10 @@ start {
 		vars.lastLevelTime = 0f;
 		vars.oldLastLevelTime = 0f;
 		vars.highestSplitTime = 0f;
-	}
-	
-	if (willStart) print("Will Start");
+		
+		vars.timerModel.Reset();
+		print("[DGASL] Starting timer due to opening first level");
+	}	
 	
 	return willStart;
 }
@@ -192,9 +209,9 @@ split {
 	{
 		vars.BaseTime += TimeSpan.FromSeconds(vars.highestSplitTime);
 		vars.highestSplitTime = 0f;
+		print ("Splitting, level change from " + vars.levelIndex.Old + " to " + vars.levelIndex.Current);
 	}
 	
-	if (willSplit) print("Will Split");
 	return willSplit;
 }
 

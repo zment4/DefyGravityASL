@@ -15,7 +15,7 @@
   <AttemptHistory />
   <Segments>
     <Segment>
-      <Name>Tutorial 1</Name>
+      <Name>1 - Tutorial 1</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -24,7 +24,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Tutorial 2</Name>
+      <Name>2 - Tutorial 2</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -33,7 +33,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Bouncy Bridge</Name>
+      <Name>3 - Bouncy Bridge</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -42,7 +42,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Golden Platform</Name>
+      <Name>4 - Golden Platform</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -51,7 +51,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Shield Slip</Name>
+      <Name>5 - Shield Slip</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -60,7 +60,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Auto-Well</Name>
+      <Name>6 - Auto-Well</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -69,7 +69,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Laser Wall</Name>
+      <Name>7 - Laser Wall</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -78,7 +78,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>RoboNinja</Name>
+      <Name>8 - RoboNinja</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -87,7 +87,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>OOBaby</Name>
+      <Name>9 - OOBaby</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -96,7 +96,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Golden Platform Revisited</Name>
+      <Name>10 - Golden Platform Revisited</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -105,7 +105,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Longjumps</Name>
+      <Name>11 - Longjumps</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -114,7 +114,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Air Ninja</Name>
+      <Name>12 - Air Ninja</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -123,7 +123,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Dodge Ball</Name>
+      <Name>13 - Dodge Ball</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -132,7 +132,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Platform Swarm</Name>
+      <Name>14 - Platform Swarm</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -141,7 +141,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Jetpack</Name>
+      <Name>15 - Jetpack</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -150,7 +150,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Bouncy Bridge Encore</Name>
+      <Name>16 - Bouncy Bridge Encore</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -159,7 +159,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Bullet Hell</Name>
+      <Name>17 - Bullet Hell</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -168,7 +168,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Nutzo Skip</Name>
+      <Name>18 - Nutzo Skip</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -177,7 +177,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Gold Chambers</Name>
+      <Name>19 - Gold Chambers</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -186,7 +186,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Leap of Faith</Name>
+      <Name>20 - Leap of Faith</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -195,7 +195,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Bridge Bender</Name>
+      <Name>21 - Bridge Bender</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -204,7 +204,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Red Chambers</Name>
+      <Name>22 - Red Chambers</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -213,7 +213,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Spiral</Name>
+      <Name>23 - Spiral</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -222,7 +222,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>Credits</Name>
+      <Name>24 - Credits</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -231,5 +231,16 @@
       <SegmentHistory />
     </Segment>
   </Segments>
-  <AutoSplitterSettings />
+  <AutoSplitterSettings>
+    <Version>1.5</Version>
+    <ScriptPath>D:\SpeedRunning\LiveSplit\Components\DefyGravity.asl</ScriptPath>
+    <Start>True</Start>
+    <Reset>True</Reset>
+    <Split>True</Split>
+    <CustomSettings>
+      <Setting id="createui" type="bool">False</Setting>
+      <Setting id="disableonpractice" type="bool">True</Setting>
+      <Setting id="forceigt" type="bool">False</Setting>
+    </CustomSettings>
+  </AutoSplitterSettings>
 </Run>
