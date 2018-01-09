@@ -75,6 +75,7 @@ init {
 				print("[DGASL] Heap address: " + ptr.ToString("X8"));
 				
 				vars.levelIndex = new MemoryWatcher<int>(ptr + 0x21c + add_offset) { Name = "Level Index" };
+				vars.hardMode = new MemoryWatcher<bool>(ptr + 0x22c + add_offset) { Name = "Hard Mode" };
 				vars.levelTimer = new MemoryWatcher<float>(ptr + 0x1f4 + add_offset) { Name = "Level Timer" };
 				var playerPtr = (ptr + 0x1d0 - modules.First().BaseAddress.ToInt32()).ToInt32();
 				vars.playerDirection = new MemoryWatcher<int>(new DeepPointer(playerPtr, 0x10, 0x118)) { Name = "Player Direction" } ;
@@ -82,6 +83,7 @@ init {
 						 
 				vars.watchers = new MemoryWatcherList() {
 					vars.levelTimer,
+					vars.hardMode,
 					vars.levelIndex,
 					vars.playerDirection,
 					vars.playerIsAlive
@@ -141,7 +143,7 @@ update {
 		}
 	}
 
-	if (timer.CurrentPhase == TimerPhase.Running && vars.highestSplitTime < vars.levelTimer.Old)
+	if (vars.levelIndex.Current > 0 && timer.CurrentPhase == TimerPhase.Running && vars.highestSplitTime < vars.levelTimer.Old)
 		vars.highestSplitTime = vars.levelTimer.Old;
 		
 	if (vars.playerIsAlive.Old == true && vars.playerIsAlive.Current == false)
@@ -203,7 +205,7 @@ start {
 split {
 	if (!vars.initialized) return false;
 
-	var willSplit = vars.levelIndex.Old != vars.levelIndex.Current && vars.levelIndex.Current != -1;
+	var willSplit = vars.levelIndex.Changed && vars.levelIndex.Current != -1 && vars.levelIndex.Old != 0;
 	
 	if (willSplit)
 	{
@@ -224,7 +226,7 @@ gameTime {
 isLoading {
 	if (!vars.initialized) return false;
 	
-	return vars.levelTimer.Old == vars.levelTimer.Current;
+	return vars.levelTimer.Old == vars.levelTimer.Current || vars.levelIndex.Current == 0;
 }
 
 reset {
