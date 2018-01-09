@@ -1,5 +1,8 @@
 state("DefyGravity")
 {
+	// Base pointers to heap
+	// mscorwks.dll+56799C
+	// mscorwks.dll+5679A0
 }
 
 startup
@@ -33,22 +36,26 @@ startup
 }
 
 init {
+	var assemblyName = AssemblyName.GetAssemblyName(modules.First().FileName).Name;
 	
 	print(modules.First().ModuleMemorySize.ToString("X8"));
-	
-	var exeVersion = "vanilla";
+	vars.exeVersion = "vanilla";
 	if (modules.First().ModuleMemorySize == 0x58000)
-		exeVersion = "practiceMod1";
-	if (modules.First().ModuleMemorySize == 0x5a000)
-		exeVersion = "practiceMod2";
+		vars.exeVersion = "practiceMod1";
+	if (assemblyName.Contains("PracticeMod") && modules.First().ModuleMemorySize == 0x5a000)
+		vars.exeVersion = "practiceMod2";
 
-	var add_offset = exeVersion.Contains("practiceMod") ? 4 : 0;
+	var add_offset = vars.exeVersion.Contains("practiceMod") ? 4 : 0;
 		
 	vars.gameScanTarget = new SigScanTarget(0, "10 3F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 40 4B 4C 00");
 	
-	vars.scannerTask = System.Threading.Tasks.Task.Run(async () => {
+	vars.watchers = new MemoryWatcherList();
+	vars.initialized = false;
+	vars.cancelRequested = false;
+	
+	vars.scannerTask = System.Threading.Tasks.Task.Run(() => {
 		var ptr = IntPtr.Zero;
-		
+
 		while (ptr == IntPtr.Zero) {
 			foreach (var page in game.MemoryPages(true)) {
 				var scanner = new SignatureScanner(game, page.BaseAddress, (int) page.RegionSize);
@@ -58,8 +65,12 @@ init {
 			}
 			
 			if (ptr != IntPtr.Zero) {
-				vars.levelTimer = new MemoryWatcher<float>(ptr + 0x1f4 + add_offset);
+				// Sometimes the last three bytes are wrong (ie. they get moved right after scanning), but the correct address is consistent to calculate
+				ptr = (IntPtr) ptr - ((int) ptr & 0xfff) + 0x18;
+				print(ptr.ToString("X8"));
+				
 				vars.levelIndex = new MemoryWatcher<int>(ptr + 0x21c + add_offset);
+				vars.levelTimer = new MemoryWatcher<float>(ptr + 0x1f4 + add_offset);
 				var playerPtr = (ptr + 0x1d0 - modules.First().BaseAddress.ToInt32()).ToInt32();
 				vars.playerDirection = new MemoryWatcher<int>(new DeepPointer(playerPtr, 0x10, 0x118));
 				vars.playerIsAlive = new MemoryWatcher<bool>(new DeepPointer(playerPtr, 0x10, 0x15b));
@@ -72,8 +83,8 @@ init {
 				};
 				
 				// Practice Mod
-				if (exeVersion.Contains("practiceMod")) {
-					add_offset = exeVersion.Contains("2") ? 8 : 0;
+				if (vars.exeVersion.Contains("practiceMod")) {
+					add_offset = vars.exeVersion.Contains("2") ? 8 : 0;
 					
 					var practicePtr = (ptr + 0x1e8 - modules.First().BaseAddress.ToInt32()).ToInt32();
 					vars.practiceModeActive = new MemoryWatcher<int>(new DeepPointer(practicePtr, 0x0c + add_offset));
@@ -81,10 +92,13 @@ init {
 					vars.watchers.Add(vars.practiceModeActive);
 				}
 			} else 
-				await System.Threading.Tasks.Task.Delay(100);
+				System.Threading.Tasks.Task.Delay(100).Wait();
+				
+			if (vars.cancelRequested)
+				break;
 		}
 	});
-		
+	
 	vars.playerDeathCount = 0;
 	vars.lastLevelTime = 0f;
 	
@@ -96,19 +110,30 @@ init {
 }
 
 update {
-	if (!vars.scannerTask.IsCompleted) return;
-	
+	if (!vars.scannerTask.IsCompleted) return false;
 	vars.watchers.UpdateAll(game);
+	if (!vars.initialized)
+	{
+		foreach (var w in vars.watchers)
+		{
+			w.Old = w.Current;
+		}
+		
+		vars.initialized = true;
+	}
 	
-	if (vars.levelIndex.Current == -1)
+	if (vars.levelIndex.Current == -1 && vars.levelIndex.Old != -1)
 	{
 		vars.playerDeathCount = 0;
 		vars.lastLevelTime = 0f;
 		vars.oldLastLevelTime = 0f;
 		vars.highestSplitTime = 0f;
 		
-		if (settings.ResetEnabled) 
+		if (settings.ResetEnabled)
+		{
+			print("Will Reset");
 			vars.timerModel.Reset();
+		}
 	}
 
 	if (vars.highestSplitTime < vars.levelTimer.Current)
@@ -127,17 +152,18 @@ update {
 		vars.SetTextComponent("Last Level IGT", vars.lastLevelTime.ToString("F2"), settings["createui"]);
 	}
 	
-	print(vars.practiceModeActive.Current.ToString());
-	
-	if (settings["disableonpractice"] && vars.practiceModeActive.Current > 0)
+	if (settings["disableonpractice"] && vars.exeVersion.Contains("practiceMod") && vars.practiceModeActive.Current > 0 && timer.CurrentPhase != TimerPhase.NotRunning)
 	{
+		print("Practice mode detected, disabling");
 		vars.timerModel.Reset();
 		return false;
-	}
+	}	
+	
+	print (vars.levelIndex.Old.ToString() + " -> " + vars.levelIndex.Current.ToString());
 }
 
-start {
-	if (!vars.scannerTask.IsCompleted) return;
+start { 
+	if (!vars.initialized) return false;
 	
 	if (settings["forceigt"]) timer.CurrentTimingMethod = TimingMethod.GameTime;
 
@@ -151,12 +177,14 @@ start {
 		vars.oldLastLevelTime = 0f;
 		vars.highestSplitTime = 0f;
 	}
-		
+	
+	if (willStart) print("Will Start");
+	
 	return willStart;
 }
 
 split {
-	if (!vars.scannerTask.IsCompleted) return;
+	if (!vars.initialized) return false;
 
 	var willSplit = vars.levelIndex.Old != vars.levelIndex.Current && vars.levelIndex.Current != -1;
 	
@@ -166,17 +194,18 @@ split {
 		vars.highestSplitTime = 0f;
 	}
 	
+	if (willSplit) print("Will Split");
 	return willSplit;
 }
 
 gameTime {
-	if (!vars.scannerTask.IsCompleted) return;
+	if (!vars.initialized) return false;
 
 	return vars.BaseTime + TimeSpan.FromSeconds(vars.highestSplitTime);
 }
 
 isLoading {
-	if (!vars.scannerTask.IsCompleted) return;
+	if (!vars.initialized) return false;
 	
 	return vars.levelTimer.Old == vars.levelTimer.Current;
 }
@@ -187,4 +216,9 @@ reset {
 
 exit {
 	vars.timerModel.Reset();
+	vars.cancelRequested = true;
+}
+
+shutdown {
+	vars.cancelRequested = true;
 }

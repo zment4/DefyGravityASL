@@ -391,5 +391,20 @@
         <HotkeysOffColor>FFCC3729</HotkeysOffColor>
       </Settings>
     </Component>
+    <Component>
+      <Path>LiveSplit.ScriptableAutoSplit.dll</Path>
+      <Settings>
+        <Version>1.5</Version>
+        <ScriptPath>D:\SpeedRunning\DefyGravityExtended\DefyGravityASL\DefyGravity.asl</ScriptPath>
+        <Start>True</Start>
+        <Reset>True</Reset>
+        <Split>True</Split>
+        <CustomSettings>
+          <Setting id="createui" type="bool">False</Setting>
+          <Setting id="disableonpractice" type="bool">True</Setting>
+          <Setting id="forceigt" type="bool">False</Setting>
+        </CustomSettings>
+      </Settings>
+    </Component>
   </Components>
 </Layout>
