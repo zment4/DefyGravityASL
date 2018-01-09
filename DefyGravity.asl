@@ -5,7 +5,7 @@ state("DefyGravity")
 startup
 {
 	settings.Add("createui", false, "Create UI if needed");
-//	settings.Add("disableonpractice", true, "Disable Autosplitter when in Practice Mode");
+	settings.Add("disableonpractice", true, "Disable Autosplitter when in Practice Mode");
 	settings.Add("forceigt", false, "Force current timing method to GameTime");
 //	settings.Add("twl", false, "GameTime is loadless instead of IGT");
 	
@@ -36,8 +36,14 @@ init {
 	
 	print(modules.First().ModuleMemorySize.ToString("X8"));
 	
-	var add_offset = modules.First().ModuleMemorySize == 0x58000 || modules.First().ModuleMemorySize == 0x5A000 ? 4 : 0;
-	
+	var exeVersion = "vanilla";
+	if (modules.First().ModuleMemorySize == 0x58000)
+		exeVersion = "practiceMod1";
+	if (modules.First().ModuleMemorySize == 0x5a000)
+		exeVersion = "practiceMod2";
+
+	var add_offset = exeVersion.Contains("practiceMod") ? 4 : 0;
+		
 	vars.gameScanTarget = new SigScanTarget(0, "10 3F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 01 ?? ?? 01 01 00 00 00 00 40 4B 4C 00");
 	
 	vars.scannerTask = System.Threading.Tasks.Task.Run(async () => {
@@ -57,7 +63,7 @@ init {
 				var playerPtr = (ptr + 0x1d0 - modules.First().BaseAddress.ToInt32()).ToInt32();
 				vars.playerDirection = new MemoryWatcher<int>(new DeepPointer(playerPtr, 0x10, 0x118));
 				vars.playerIsAlive = new MemoryWatcher<bool>(new DeepPointer(playerPtr, 0x10, 0x15b));
-				 
+						 
 				vars.watchers = new MemoryWatcherList() {
 					vars.levelTimer,
 					vars.levelIndex,
@@ -65,6 +71,15 @@ init {
 					vars.playerIsAlive
 				};
 				
+				// Practice Mod
+				if (exeVersion.Contains("practiceMod")) {
+					add_offset = exeVersion.Contains("2") ? 8 : 0;
+					
+					var practicePtr = (ptr + 0x1e8 - modules.First().BaseAddress.ToInt32()).ToInt32();
+					vars.practiceModeActive = new MemoryWatcher<int>(new DeepPointer(practicePtr, 0x0c + add_offset));
+					
+					vars.watchers.Add(vars.practiceModeActive);
+				}
 			} else 
 				await System.Threading.Tasks.Task.Delay(100);
 		}
@@ -96,8 +111,6 @@ update {
 			vars.timerModel.Reset();
 	}
 
-//	print("Loaded level: " + vars.levelIndex.Current.ToString() + " | Level timer: " + vars.levelTimer.Current.ToString("F1"));
-	
 	if (vars.highestSplitTime < vars.levelTimer.Current)
 		vars.highestSplitTime = vars.levelTimer.Current;
 		
@@ -112,6 +125,14 @@ update {
 	if (vars.oldLastLevelTime != vars.lastLevelTime)
 	{
 		vars.SetTextComponent("Last Level IGT", vars.lastLevelTime.ToString("F2"), settings["createui"]);
+	}
+	
+	print(vars.practiceModeActive.Current.ToString());
+	
+	if (settings["disableonpractice"] && vars.practiceModeActive.Current > 0)
+	{
+		vars.timerModel.Reset();
+		return false;
 	}
 }
 
