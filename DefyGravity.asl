@@ -51,7 +51,9 @@ init {
 		vars.exeVersion = "practiceMod2";
 
 	var add_offset = vars.exeVersion.Contains("practiceMod") ? 4 : 0;
-		
+	var ptr_offset = (assemblyName.Contains("v5") ? 8 : 0);
+	add_offset += ptr_offset + (assemblyName.Contains("v5") ? 4 : 0);
+	
 	vars.gameScanTarget = new SigScanTarget(0, "10 3F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 40 4B 4C 00");
 	
 	vars.watchers = new MemoryWatcherList();
@@ -79,10 +81,14 @@ init {
 				vars.heapAddress = ptr;
 				print("[DGASL] Heap address: " + ptr.ToString("X8"));
 				
-				vars.levelIndex = new MemoryWatcher<int>(ptr + 0x21c + add_offset) { Name = "Level Index" };
-				vars.hardMode = new MemoryWatcher<bool>(ptr + 0x22c + add_offset) { Name = "Hard Mode" };
-				vars.levelTimer = new MemoryWatcher<float>(ptr + 0x1f4 + add_offset) { Name = "Level Timer" };
-				var playerPtr = (ptr + 0x1d0 - modules.First().BaseAddress.ToInt32()).ToInt32();
+				var gameptr = ptr + add_offset;
+				vars.levelIndex = new MemoryWatcher<int>(gameptr + 0x21c) { Name = "Level Index" };
+				vars.hardMode = new MemoryWatcher<bool>(gameptr + 0x22c) { Name = "Hard Mode" };
+				vars.levelTimer = new MemoryWatcher<float>(gameptr + 0x1f4) { Name = "Level Timer" };
+				
+				var plrPtr = ptr + ptr_offset;
+				
+				var playerPtr = (plrPtr + 0x1d0 - modules.First().BaseAddress.ToInt32()).ToInt32();
 				vars.playerDirection = new MemoryWatcher<int>(new DeepPointer(playerPtr, 0x10, 0x118)) { Name = "Player Direction" } ;
 				vars.playerIsAlive = new MemoryWatcher<bool>(new DeepPointer(playerPtr, 0x10, 0x15b)) { Name = "Player Is Alive" } ;
 						 
@@ -96,9 +102,10 @@ init {
 				
 				// Practice Mod
 				if (vars.exeVersion.Contains("practiceMod")) {
-					add_offset = vars.exeVersion.Contains("2") ? 8 : 0;
+					add_offset = (vars.exeVersion.Contains("2") || assemblyName.Contains("v5")) ? 8 : 0;
+					var prcPtr = ptr + (assemblyName.Contains("v5") ? 8 : 0);
 					
-					var practicePtr = (ptr + 0x1e8 - modules.First().BaseAddress.ToInt32()).ToInt32();
+					var practicePtr = (prcPtr + 0x1e8 - modules.First().BaseAddress.ToInt32()).ToInt32();
 					vars.practiceModeActive = new MemoryWatcher<int>(new DeepPointer(practicePtr, 0x0c + add_offset)) { Name = "Practice Mode Type" };
 					
 					vars.watchers.Add(vars.practiceModeActive);
