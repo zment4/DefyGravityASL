@@ -1,7 +1,8 @@
 state("DefyGravity")
 {
 	// Base pointers to heap
-	int heapBase : "mscorwks.dll", 0x56799C;
+//	int heapBase : "mscorwks.dll", 0x56799C;
+	int heapBase : "mscorwks.dll", 0x5622AC;
 	// mscorwks.dll+5679A0
 }
 
@@ -40,7 +41,6 @@ init {
 	var assemblyName = AssemblyName.GetAssemblyName(modules.First().FileName).Name;
 	
 	print(current.heapBase.ToString("X8"));
-	vars.heapBasePointerAddres = 0x56799C;
 
 	print("[DGASL] Assembly Name: " + assemblyName);
 	print("[DGASL] Memory module size: " + modules.First().ModuleMemorySize.ToString("X8"));
@@ -65,10 +65,13 @@ init {
 		
 		while (ptr == IntPtr.Zero) {
 			foreach (var page in game.MemoryPages(true)) {
-				var scanner = new SignatureScanner(game, page.BaseAddress, (int) page.RegionSize);
-				
-				if ((ptr = scanner.Scan(vars.gameScanTarget)) != IntPtr.Zero) 
+				if ((int) page.BaseAddress == current.heapBase) {
+					print ("[DGASL] CurrentHeapBase: " + current.heapBase.ToString("X8") + " Base: " + page.BaseAddress.ToString("X8") + " Size: " + ((int) page.RegionSize).ToString("X8")); 
+					var scanner = new SignatureScanner(game, page.BaseAddress, (int) page.RegionSize);
+			
+					ptr = scanner.Scan(vars.gameScanTarget);
 					break;
+				}
 			}
 			
 			if (ptr != IntPtr.Zero) {
