@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Layout version="1.6.1">
   <Mode>Vertical</Mode>
-  <X>6</X>
-  <Y>0</Y>
-  <VerticalWidth>321</VerticalWidth>
-  <VerticalHeight>610</VerticalHeight>
+  <X>-2</X>
+  <Y>2</Y>
+  <VerticalWidth>415</VerticalWidth>
+  <VerticalHeight>693</VerticalHeight>
   <HorizontalWidth>-1</HorizontalWidth>
   <HorizontalHeight>-1</HorizontalHeight>
   <Settings>
@@ -389,22 +389,6 @@
       <Settings>
         <HotkeysOnColor>FF29CC54</HotkeysOnColor>
         <HotkeysOffColor>FFCC3729</HotkeysOffColor>
-      </Settings>
-    </Component>
-    <Component>
-      <Path>LiveSplit.ScriptableAutoSplit.dll</Path>
-      <Settings>
-        <Version>1.5</Version>
-        <ScriptPath>D:\SpeedRunning\DefyGravityExtended\DefyGravityASL\DefyGravity.asl</ScriptPath>
-        <Start>True</Start>
-        <Reset>True</Reset>
-        <Split>True</Split>
-        <CustomSettings>
-          <Setting id="createui" type="bool">False</Setting>
-          <Setting id="disableonpractice" type="bool">True</Setting>
-          <Setting id="forceigt" type="bool">False</Setting>
-          <Setting id="debug" type="bool">True</Setting>
-        </CustomSettings>
       </Settings>
     </Component>
   </Components>

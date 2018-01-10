@@ -1,7 +1,7 @@
 state("DefyGravity")
 {
 	// Base pointers to heap
-	// mscorwks.dll+56799C
+	int heapBase : "mscorwks.dll", 0x56799C;
 	// mscorwks.dll+5679A0
 }
 
@@ -39,6 +39,9 @@ startup
 init {
 	var assemblyName = AssemblyName.GetAssemblyName(modules.First().FileName).Name;
 	
+	print(current.heapBase.ToString("X8"));
+	vars.heapBasePointerAddres = 0x56799C;
+
 	print("[DGASL] Assembly Name: " + assemblyName);
 	print("[DGASL] Memory module size: " + modules.First().ModuleMemorySize.ToString("X8"));
 	vars.exeVersion = "vanilla";
@@ -70,7 +73,6 @@ init {
 			
 			if (ptr != IntPtr.Zero) {
 				// Sometimes the last three bytes are wrong (ie. they get moved right after scanning), but the correct address is consistent to calculate
-//				ptr = (IntPtr) ptr - ((int) ptr & 0xfff) + 0x18;
 				vars.heapAddress = ptr;
 				print("[DGASL] Heap address: " + ptr.ToString("X8"));
 				
@@ -117,6 +119,8 @@ init {
 }
 
 update {
+	if (settings["debug"]) print((vars.scannerTask.IsCompleted ? "[DGASL] Scanning complete" : "[DGASL] Scanning for address"));
+	
 	if (!vars.scannerTask.IsCompleted) return false;
 	vars.watchers.UpdateAll(game);
 	if (!vars.initialized)
@@ -174,8 +178,9 @@ update {
 			str += "[DGASL] " + w.Name + ": " + w.Current.ToString() + "\n";
 		}
 		
-		str += "[DGASL] Heap Address: " + vars.heapAddress.ToString("X8");
+		str += "[DGASL] Found Heap Address: " + vars.heapAddress.ToString("X8") + "\n";
 		
+		str += "[DGASL] Heap Base: " + current.heapBase.ToString("X8");
 		print(str);
 	}
 }
