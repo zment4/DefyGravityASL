@@ -60,17 +60,20 @@ init {
 	print("[DGASL] MD5: " + MD5Hash);
 
 	vars.exeVersion = "Vanilla";
-	if (modules.First().ModuleMemorySize == 0x8000)
-		vars.exeVersion = "PracticeMod_v1";
+	var splitParts = assemblyName.Split('_');
 	if (assemblyName.Contains("PracticeMod"))
 	{
 		vars.exeVersion = "PracticeMod_";
-		vars.exeVersion += assemblyName.Split('_').Length > 2 ? assemblyName.Split('_')[2] : "v4";
+		vars.exeVersion += splitParts.Length > 2 ? splitParts[2] : "v4";
+		var rev = splitParts.Where(x => x.StartsWith("r")).FirstOrDefault();
+		vars.exeVersion += rev != null ? "_" + rev : "";
 	}
-	if (MD5Hash == "E481DDBF5D4516683A54F7E23874DDDA")
-		vars.exeVersion = "PracticeMod_v3";
+	if (MD5Hash == "B347D51A915550A39242361282FD605E" || MD5Hash == "91D81CDD574E3BCF49ABCD733880C77C")
+		vars.exeVersion = "PracticeMod_v1";
 	if (MD5Hash == "4E094603360E281A11AFE6325A491C3B")
 		vars.exeVersion = "PracticeMod_v2";
+	if (MD5Hash == "E481DDBF5D4516683A54F7E23874DDDA")
+		vars.exeVersion = "PracticeMod_v3";
 		
 	var gamePtrOffset = 0x0;
 	var playerPtrOffset = 0x1d0;
@@ -81,7 +84,7 @@ init {
 	{
 		case "PracticeMod_v1":
 			gamePtrOffset = 0x4;
-			practiceDataOffset = 0x8;
+			practiceDataOffset = 0xc;
 			break;
 		case "PracticeMod_v2":
 			gamePtrOffset = 0x4;
@@ -106,6 +109,12 @@ init {
 			playerPtrOffset = 0x1d8;
 			practicePtrOffset = 0x1f0;
 			practiceDataOffset = 0x2c;
+			break;
+		case "PracticeMod_v6_r2":
+			gamePtrOffset = 0x14;
+			playerPtrOffset = 0x1d8;
+			practicePtrOffset = 0x1f0;
+			practiceDataOffset = 0x30;
 			break;		
 	}
 	
@@ -302,6 +311,7 @@ reset {
 exit {
 	vars.timerModel.Reset();
 	vars.cancelRequested = true;
+	vars.scannerTask = null;
 }
 
 shutdown {
