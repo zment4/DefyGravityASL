@@ -233,7 +233,7 @@ update {
 		vars.SetTextComponent("Last Level IGT", vars.lastLevelTime.ToString("F2"), settings["createui"]);
 	}
 	
-	if (settings["disableonpractice"] && vars.exeVersion.Contains("practiceMod") && vars.practiceModeActive.Current > 0 && timer.CurrentPhase != TimerPhase.NotRunning)
+	if (settings["disableonpractice"] && vars.exeVersion.Contains("PracticeMod") && vars.practiceModeActive.Current > 0 && timer.CurrentPhase != TimerPhase.NotRunning)
 	{
 		print("Practice mode detected, disabling");
 		vars.timerModel.Reset();
