@@ -157,8 +157,8 @@ update {
 		}
 	}
 
-	if (vars.levelIndex.Current > 0 && timer.CurrentPhase == TimerPhase.Running && vars.highestSplitTime < vars.levelTimer.Current)
-		vars.highestSplitTime = vars.levelTimer.Current;
+	if (vars.levelIndex.Current > 0 && timer.CurrentPhase == TimerPhase.Running && vars.highestSplitTime < vars.levelTimer.Old)
+		vars.highestSplitTime = vars.levelTimer.Old;
 		
 	if (vars.playerIsAlive.Old == true && vars.playerIsAlive.Current == false)
 		vars.playerDeathCount++;
