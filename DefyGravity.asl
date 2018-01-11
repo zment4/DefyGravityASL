@@ -40,20 +40,76 @@ startup
 init {
 	var assemblyName = AssemblyName.GetAssemblyName(modules.First().FileName).Name;
 	
+	byte[] exeMD5HashBytes = new byte[0];
+	
+	using (var md5 = System.Security.Cryptography.MD5.Create())
+	{
+		using (var s = File.Open(modules.First().FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+		{
+			exeMD5HashBytes = md5.ComputeHash(s);
+		} 
+	}
+	
+	var MD5Hash = exeMD5HashBytes.Select(x => x.ToString("X2")).Aggregate((a, b) => a + b);
+	
 	print(current.heapBase.ToString("X8"));
 
 	print("[DGASL] Assembly Name: " + assemblyName);
-	print("[DGASL] Memory module size: " + modules.First().ModuleMemorySize.ToString("X8"));
-	vars.exeVersion = "vanilla";
-	if (modules.First().ModuleMemorySize == 0x58000)
-		vars.exeVersion = "practiceMod1";
-	if (assemblyName.Contains("PracticeMod") && modules.First().ModuleMemorySize == 0x5a000)
-		vars.exeVersion = "practiceMod2";
+	print("[DGASL] Module Name: " + modules.First().ModuleName);
+	print("[DGASL] Memory Size: " + modules.Last().ModuleMemorySize.ToString("X8"));
+	print("[DGASL] MD5: " + MD5Hash);
 
-	var add_offset = vars.exeVersion.Contains("practiceMod") ? 4 : 0;
-	var ptr_offset = (assemblyName.Contains("v5") ? 8 : 0);
-	add_offset += ptr_offset + (assemblyName.Contains("v5") ? 4 : 0);
+	vars.exeVersion = "Vanilla";
+	if (modules.First().ModuleMemorySize == 0x8000)
+		vars.exeVersion = "PracticeMod_v1";
+	if (assemblyName.Contains("PracticeMod"))
+	{
+		vars.exeVersion = "PracticeMod_";
+		vars.exeVersion += assemblyName.Split('_').Length > 2 ? assemblyName.Split('_')[2] : "v4";
+	}
+	if (MD5Hash == "E481DDBF5D4516683A54F7E23874DDDA")
+		vars.exeVersion = "PracticeMod_v3";
+	if (MD5Hash == "4E094603360E281A11AFE6325A491C3B")
+		vars.exeVersion = "PracticeMod_v2";
+		
+	var gamePtrOffset = 0x0;
+	var playerPtrOffset = 0x1d0;
+	var practicePtrOffset = 0x1e8;
+	var practiceDataOffset = 0x14;
 	
+	switch (vars.exeVersion as string)
+	{
+		case "PracticeMod_v1":
+			gamePtrOffset = 0x4;
+			practiceDataOffset = 0x8;
+			break;
+		case "PracticeMod_v2":
+			gamePtrOffset = 0x4;
+			practiceDataOffset = 0x14;
+			break;
+		case "PracticeMod_v3":
+			gamePtrOffset = 0x4;
+			practiceDataOffset = 0x14;
+			break;
+		case "PracticeMod_v4":
+			gamePtrOffset = 0x4;
+			practiceDataOffset = 0x14;
+			break;
+		case "PracticeMod_v5":
+			gamePtrOffset = 0x10;
+			playerPtrOffset = 0x1d8;
+			practicePtrOffset = 0x1f0;
+			practiceDataOffset = 0x14;
+			break;
+		case "PracticeMod_v6":
+			gamePtrOffset = 0x10;
+			playerPtrOffset = 0x1d8;
+			practicePtrOffset = 0x1f0;
+			practiceDataOffset = 0x2c;
+			break;		
+	}
+	
+	print("[DGASL] Detected exe version: " + vars.exeVersion);
 	vars.gameScanTarget = new SigScanTarget(0, "10 3F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 40 4B 4C 00");
 	
 	vars.watchers = new MemoryWatcherList();
@@ -81,14 +137,12 @@ init {
 				vars.heapAddress = ptr;
 				print("[DGASL] Heap address: " + ptr.ToString("X8"));
 				
-				var gameptr = ptr + add_offset;
-				vars.levelIndex = new MemoryWatcher<int>(gameptr + 0x21c) { Name = "Level Index" };
-				vars.hardMode = new MemoryWatcher<bool>(gameptr + 0x22c) { Name = "Hard Mode" };
-				vars.levelTimer = new MemoryWatcher<float>(gameptr + 0x1f4) { Name = "Level Timer" };
+				var gamePtr = ptr + gamePtrOffset;
+				vars.levelIndex = new MemoryWatcher<int>(gamePtr + 0x21c) { Name = "Level Index" };
+				vars.hardMode = new MemoryWatcher<bool>(gamePtr + 0x22c) { Name = "Hard Mode" };
+				vars.levelTimer = new MemoryWatcher<float>(gamePtr + 0x1f4) { Name = "Level Timer" };
 				
-				var plrPtr = ptr + ptr_offset;
-				
-				var playerPtr = (plrPtr + 0x1d0 - modules.First().BaseAddress.ToInt32()).ToInt32();
+				var playerPtr = (ptr + playerPtrOffset - modules.First().BaseAddress.ToInt32()).ToInt32();
 				vars.playerDirection = new MemoryWatcher<int>(new DeepPointer(playerPtr, 0x10, 0x118)) { Name = "Player Direction" } ;
 				vars.playerIsAlive = new MemoryWatcher<bool>(new DeepPointer(playerPtr, 0x10, 0x15b)) { Name = "Player Is Alive" } ;
 						 
@@ -101,12 +155,9 @@ init {
 				};
 				
 				// Practice Mod
-				if (vars.exeVersion.Contains("practiceMod")) {
-					add_offset = (vars.exeVersion.Contains("2") || assemblyName.Contains("v5")) ? 8 : 0;
-					var prcPtr = ptr + (assemblyName.Contains("v5") ? 8 : 0);
-					
-					var practicePtr = (prcPtr + 0x1e8 - modules.First().BaseAddress.ToInt32()).ToInt32();
-					vars.practiceModeActive = new MemoryWatcher<int>(new DeepPointer(practicePtr, 0x0c + add_offset)) { Name = "Practice Mode Type" };
+				if (vars.exeVersion.Contains("PracticeMod")) {
+					var practicePtr = (ptr + practicePtrOffset - modules.First().BaseAddress.ToInt32()).ToInt32();
+					vars.practiceModeActive = new MemoryWatcher<int>(new DeepPointer(practicePtr, practiceDataOffset)) { Name = "Practice Mode Type" };
 					
 					vars.watchers.Add(vars.practiceModeActive);
 				}
