@@ -115,6 +115,18 @@ init {
 			playerPtrOffset = 0x1d8;
 			practicePtrOffset = 0x1f0;
 			practiceDataOffset = 0x30;
+			break;
+		case "PracticeMod_v6_r3":
+			gamePtrOffset = 0x14;
+			playerPtrOffset = 0x1d8;
+			practicePtrOffset = 0x1f0;
+			practiceDataOffset = 0x30;		
+			break;		
+		case "PracticeMod_v7":
+			gamePtrOffset = 0x18;
+			playerPtrOffset = 0x1d8;
+			practicePtrOffset = 0x1f0;
+			practiceDataOffset = 0x30;		
 			break;		
 	}
 	
