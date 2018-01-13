@@ -265,6 +265,9 @@ update {
 		str += "[DGASL] Heap Base: " + current.heapBase.ToString("X8");
 		print(str);
 	}
+	
+	if (timer.CurrentPhase == TimerPhase.Ended || timer.CurrentPhase == TimerPhase.NotRunning)
+		vars.highestSplitTime = 0f;
 }
 
 start { 
@@ -293,7 +296,7 @@ split {
 	if (!vars.initialized) return false;
 	if (timer.CurrentPhase == TimerPhase.Running && vars.levelIndex.Old == 0 && !vars.hardMode.Changed) return false;
 	
-	var willSplit = vars.levelIndex.Changed && vars.levelIndex.Current != -1 && !(vars.levelIndex.Current == 0 && vars.hardMode.Changed && vars.hardMode.Current);
+	var willSplit = vars.levelIndex.Changed && vars.levelIndex.Current != -1;
 	
 	if (willSplit)
 	{
