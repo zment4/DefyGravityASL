@@ -293,6 +293,7 @@ split {
 	if (!vars.initialized) return false;
 
 	var willSplit = vars.levelIndex.Changed && vars.levelIndex.Current != -1 && !(vars.levelIndex.Current == 0 && vars.hardMode.Changed && vars.hardMode.Current);
+	if (vars.levelIndex.Old == 0 && !vars.hardMode.Changed) willSplit = false;
 	
 	if (willSplit)
 	{
