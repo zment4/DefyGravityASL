@@ -128,6 +128,12 @@ init {
 			practicePtrOffset = 0x1f0;
 			practiceDataOffset = 0x30;		
 			break;		
+		case "PracticeMod_v8":
+			gamePtrOffset = 0x18;
+			playerPtrOffset = 0x1d8;
+			practicePtrOffset = 0x1f0;
+			practiceDataOffset = 0x30;		
+			break;		
 	}
 	
 	print("[DGASL] Detected exe version: " + vars.exeVersion);
