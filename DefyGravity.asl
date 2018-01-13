@@ -38,7 +38,9 @@ startup
 }
 
 init {
-	var assemblyName = AssemblyName.GetAssemblyName(modules.First().FileName).Name;
+	var assName = AssemblyName.GetAssemblyName(modules.First().FileName);
+	var assemblyName = assName.Name;
+	var assemblyVersion = assName.Version;
 	
 	byte[] exeMD5HashBytes = new byte[0];
 	
@@ -67,6 +69,8 @@ init {
 		vars.exeVersion += splitParts.Length > 2 ? splitParts[2] : "v4";
 		var rev = splitParts.Where(x => x.StartsWith("r")).FirstOrDefault();
 		vars.exeVersion += rev != null ? "_" + rev : "";
+		if(assemblyVersion.Minor != 0)
+			vars.exeVersion = "PracticeMod_v"+assemblyVersion.Minor.ToString();
 	}
 	if (MD5Hash == "B347D51A915550A39242361282FD605E" || MD5Hash == "91D81CDD574E3BCF49ABCD733880C77C")
 		vars.exeVersion = "PracticeMod_v1";
@@ -74,7 +78,7 @@ init {
 		vars.exeVersion = "PracticeMod_v2";
 	if (MD5Hash == "E481DDBF5D4516683A54F7E23874DDDA")
 		vars.exeVersion = "PracticeMod_v3";
-		
+			
 	var gamePtrOffset = 0x0;
 	var playerPtrOffset = 0x1d0;
 	var practicePtrOffset = 0x1e8;
