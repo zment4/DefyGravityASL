@@ -229,10 +229,10 @@ update {
 		}
 	}
 
-	if (vars.levelIndex.Current > 0 && timer.CurrentPhase == TimerPhase.Running && vars.highestSplitTime < vars.levelTimer.Old)
-		vars.highestSplitTime = vars.levelTimer.Old;
+	if (vars.levelIndex.Current > 0 && timer.CurrentPhase == TimerPhase.Running && vars.highestSplitTime < vars.levelTimer.Current)
+		vars.highestSplitTime = vars.levelTimer.Current;
 		
-	if (vars.playerIsAlive.Old == true && vars.playerIsAlive.Current == false)
+	if (vars.playerIsAlive.Changed)
 		vars.playerDeathCount++;
 		
 	vars.SetTextComponent("Death Count", vars.playerDeathCount.ToString(), settings["createui"]);
@@ -291,9 +291,9 @@ start {
 
 split {
 	if (!vars.initialized) return false;
-
+	if (timer.CurrentPhase == TimerPhase.Running && vars.levelIndex.Old == 0 && !vars.hardMode.Changed) return false;
+	
 	var willSplit = vars.levelIndex.Changed && vars.levelIndex.Current != -1 && !(vars.levelIndex.Current == 0 && vars.hardMode.Changed && vars.hardMode.Current);
-	if (vars.levelIndex.Old == 0 && !vars.hardMode.Changed) willSplit = false;
 	
 	if (willSplit)
 	{
