@@ -127,11 +127,6 @@ init {
 			practiceDataOffset = 0x30;		
 			break;		
 		case "PracticeMod_v7":
-			gamePtrOffset = 0x18;
-			playerPtrOffset = 0x1d8;
-			practicePtrOffset = 0x1f0;
-			practiceDataOffset = 0x30;		
-			break;		
 		case "PracticeMod_v8":
 			gamePtrOffset = 0x18;
 			playerPtrOffset = 0x1d8;
@@ -242,7 +237,7 @@ update {
 	if (vars.levelIndex.Current > 0 && timer.CurrentPhase == TimerPhase.Running && vars.highestSplitTime < vars.levelTimer.Current)
 		vars.highestSplitTime = vars.levelTimer.Current;
 		
-	if (vars.playerIsAlive.Changed)
+	if (vars.playerIsAlive.Changed && vars.playerIsAlive.Current == false)
 		vars.playerDeathCount++;
 		
 	vars.SetTextComponent("Death Count", vars.playerDeathCount.ToString(), settings["createui"]);
