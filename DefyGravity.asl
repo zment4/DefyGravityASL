@@ -155,50 +155,54 @@ init {
 		var gameScanTarget = new SigScanTarget(0, "10 3F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 40 4B 4C 00");
 		
 		while (ptr == IntPtr.Zero) {
-			foreach (var page in game.MemoryPages(true)) {
-				if ((int) page.BaseAddress == current.heapBase) {
-					print ("[DGASL] CurrentHeapBase: " + current.heapBase.ToString("X8") + " Base: " + page.BaseAddress.ToString("X8") + " Size: " + ((int) page.RegionSize).ToString("X8")); 
-					var scanner = new SignatureScanner(game, page.BaseAddress, (int) page.RegionSize);
-			
-					ptr = scanner.Scan(gameScanTarget);
-					break;
-				}
-			}
-			
-			if (ptr != IntPtr.Zero) {
-				// Sometimes the last three bytes are wrong (ie. they get moved right after scanning), but the correct address is consistent to calculate
-				vars.heapAddress = ptr;
-				print("[DGASL] Heap address: " + ptr.ToString("X8"));
-				
-				var gamePtr = ptr + gamePtrOffset;
-				vars.levelIndex = new MemoryWatcher<int>(gamePtr + 0x21c) { Name = "Level Index" };
-				vars.hardMode = new MemoryWatcher<bool>(gamePtr + 0x22c) { Name = "Hard Mode" };
-				vars.levelTimer = new MemoryWatcher<float>(gamePtr + 0x1f4) { Name = "Level Timer" };
-				
-				var playerPtr = (ptr + playerPtrOffset - modules.First().BaseAddress.ToInt32()).ToInt32();
-				vars.playerDirection = new MemoryWatcher<int>(new DeepPointer(playerPtr, 0x10, 0x118)) { Name = "Player Direction" } ;
-				vars.playerIsAlive = new MemoryWatcher<bool>(new DeepPointer(playerPtr, 0x10, 0x15b)) { Name = "Player Is Alive" } ;
-						 
-				vars.watchers = new MemoryWatcherList() {
-					vars.levelTimer,
-					vars.hardMode,
-					vars.levelIndex,
-					vars.playerDirection,
-					vars.playerIsAlive
-				};
-				
-				// Practice Mod
-				if (vars.exeVersion.Contains("PracticeMod")) {
-					var practicePtr = (ptr + practicePtrOffset - modules.First().BaseAddress.ToInt32()).ToInt32();
-					vars.practiceModeActive = new MemoryWatcher<int>(new DeepPointer(practicePtr, practiceDataOffset)) { Name = "Practice Mode Type" };
-					
-					vars.watchers.Add(vars.practiceModeActive);
-				}
-			} else 
-				System.Threading.Thread.Sleep(100);
-				
 			if (vars.cancelRequested)
 				break;
+
+			try {			
+				foreach (var page in game.MemoryPages(true)) {
+					if ((int) page.BaseAddress == current.heapBase) {
+						print ("[DGASL] CurrentHeapBase: " + current.heapBase.ToString("X8") + " Base: " + page.BaseAddress.ToString("X8") + " Size: " + ((int) page.RegionSize).ToString("X8")); 
+						var scanner = new SignatureScanner(game, page.BaseAddress, (int) page.RegionSize);
+				
+						ptr = scanner.Scan(gameScanTarget);
+						break;
+					}
+				}
+				
+				if (ptr != IntPtr.Zero) {
+					// Sometimes the last three bytes are wrong (ie. they get moved right after scanning), but the correct address is consistent to calculate
+					vars.heapAddress = ptr;
+					print("[DGASL] Heap address: " + ptr.ToString("X8"));
+					
+					var gamePtr = ptr + gamePtrOffset;
+					vars.levelIndex = new MemoryWatcher<int>(gamePtr + 0x21c) { Name = "Level Index" };
+					vars.hardMode = new MemoryWatcher<bool>(gamePtr + 0x22c) { Name = "Hard Mode" };
+					vars.levelTimer = new MemoryWatcher<float>(gamePtr + 0x1f4) { Name = "Level Timer" };
+					
+					var playerPtr = (ptr + playerPtrOffset - modules.First().BaseAddress.ToInt32()).ToInt32();
+					vars.playerDirection = new MemoryWatcher<int>(new DeepPointer(playerPtr, 0x10, 0x118)) { Name = "Player Direction" } ;
+					vars.playerIsAlive = new MemoryWatcher<bool>(new DeepPointer(playerPtr, 0x10, 0x15b)) { Name = "Player Is Alive" } ;
+							 
+					vars.watchers = new MemoryWatcherList() {
+						vars.levelTimer,
+						vars.hardMode,
+						vars.levelIndex,
+						vars.playerDirection,
+						vars.playerIsAlive
+					};
+					
+					// Practice Mod
+					if (vars.exeVersion.Contains("PracticeMod")) {
+						var practicePtr = (ptr + practicePtrOffset - modules.First().BaseAddress.ToInt32()).ToInt32();
+						vars.practiceModeActive = new MemoryWatcher<int>(new DeepPointer(practicePtr, practiceDataOffset)) { Name = "Practice Mode Type" };
+						
+						vars.watchers.Add(vars.practiceModeActive);
+					}
+				} else 
+					System.Threading.Thread.Sleep(100);					
+			} catch (System.Exception e) { 
+				System.Threading.Thread.Sleep(1000);								
+			}
 		}
 	})).Start();
 	
